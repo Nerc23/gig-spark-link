@@ -5,15 +5,13 @@ import { supabase } from '@/integrations/supabase/client';
 export interface Profile {
   id: string;
   user_type: 'freelancer' | 'client';
-  full_name?: string;
-  email?: string;
+  full_name: string;
+  email: string;
   avatar_url?: string;
   bio?: string;
   location?: string;
   website?: string;
   phone?: string;
-  subscription_tier: 'free' | 'basic' | 'business' | 'enterprise';
-  subscription_expires_at?: string;
   created_at: string;
   updated_at: string;
 }
@@ -28,7 +26,8 @@ export interface FreelancerProfile {
   total_earnings?: number;
   completed_projects?: number;
   rating?: number;
-  total_reviews?: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ClientProfile {
@@ -39,7 +38,8 @@ export interface ClientProfile {
   total_spent?: number;
   active_projects?: number;
   rating?: number;
-  total_reviews?: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Project {
@@ -75,7 +75,8 @@ export const signUp = async (email: string, password: string, userData: any) => 
     email,
     password,
     options: {
-      data: userData
+      data: userData,
+      emailRedirectTo: `${window.location.origin}/`
     }
   });
   return { data, error };
@@ -99,7 +100,7 @@ export const getCurrentUser = async () => {
   return { user, error };
 };
 
-// Profile helpers
+// Profile CRUD operations
 export const getProfile = async (userId: string) => {
   const { data, error } = await supabase
     .from('profiles')
@@ -119,7 +120,55 @@ export const updateProfile = async (userId: string, updates: Partial<Profile>) =
   return { data, error };
 };
 
-// Project helpers
+export const deleteProfile = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .delete()
+    .eq('id', userId);
+  return { data, error };
+};
+
+// Freelancer Profile CRUD operations
+export const getFreelancerProfile = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('freelancer_profiles')
+    .select('*')
+    .eq('id', userId)
+    .single();
+  return { data, error };
+};
+
+export const updateFreelancerProfile = async (userId: string, updates: Partial<FreelancerProfile>) => {
+  const { data, error } = await supabase
+    .from('freelancer_profiles')
+    .update(updates)
+    .eq('id', userId)
+    .select()
+    .single();
+  return { data, error };
+};
+
+// Client Profile CRUD operations
+export const getClientProfile = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('client_profiles')
+    .select('*')
+    .eq('id', userId)
+    .single();
+  return { data, error };
+};
+
+export const updateClientProfile = async (userId: string, updates: Partial<ClientProfile>) => {
+  const { data, error } = await supabase
+    .from('client_profiles')
+    .update(updates)
+    .eq('id', userId)
+    .select()
+    .single();
+  return { data, error };
+};
+
+// Project CRUD operations
 export const createProject = async (project: Omit<Project, 'id' | 'created_at' | 'updated_at'>) => {
   const { data, error } = await supabase
     .from('projects')
@@ -143,7 +192,34 @@ export const getProjects = async (filters?: any) => {
   return { data, error };
 };
 
-// Application helpers
+export const getProject = async (projectId: string) => {
+  const { data, error } = await supabase
+    .from('projects')
+    .select('*')
+    .eq('id', projectId)
+    .single();
+  return { data, error };
+};
+
+export const updateProject = async (projectId: string, updates: Partial<Project>) => {
+  const { data, error } = await supabase
+    .from('projects')
+    .update(updates)
+    .eq('id', projectId)
+    .select()
+    .single();
+  return { data, error };
+};
+
+export const deleteProject = async (projectId: string) => {
+  const { data, error } = await supabase
+    .from('projects')
+    .delete()
+    .eq('id', projectId);
+  return { data, error };
+};
+
+// Application CRUD operations
 export const createApplication = async (application: Omit<Application, 'id' | 'created_at' | 'updated_at'>) => {
   const { data, error } = await supabase
     .from('applications')
@@ -164,6 +240,33 @@ export const getApplications = async (filters?: any) => {
   }
   
   const { data, error } = await query.order('created_at', { ascending: false });
+  return { data, error };
+};
+
+export const getApplication = async (applicationId: string) => {
+  const { data, error } = await supabase
+    .from('applications')
+    .select('*')
+    .eq('id', applicationId)
+    .single();
+  return { data, error };
+};
+
+export const updateApplication = async (applicationId: string, updates: Partial<Application>) => {
+  const { data, error } = await supabase
+    .from('applications')
+    .update(updates)
+    .eq('id', applicationId)
+    .select()
+    .single();
+  return { data, error };
+};
+
+export const deleteApplication = async (applicationId: string) => {
+  const { data, error } = await supabase
+    .from('applications')
+    .delete()
+    .eq('id', applicationId);
   return { data, error };
 };
 

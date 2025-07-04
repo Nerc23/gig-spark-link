@@ -40,22 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Get initial session
-    const getInitialSession = async () => {
-      const { user: currentUser } = await getCurrentUser();
-      setUser(currentUser);
-      
-      if (currentUser) {
-        const { data } = await getProfile(currentUser.id);
-        setProfile(data);
-      }
-      
-      setLoading(false);
-    };
-
-    getInitialSession();
-
-    // Listen for auth changes
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setUser(session?.user ?? null);
@@ -70,6 +55,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLoading(false);
       }
     );
+
+    // Get initial session
+    const getInitialSession = async () => {
+      const { user: currentUser } = await getCurrentUser();
+      setUser(currentUser);
+      
+      if (currentUser) {
+        const { data } = await getProfile(currentUser.id);
+        setProfile(data);
+      }
+      
+      setLoading(false);
+    };
+
+    getInitialSession();
 
     return () => subscription.unsubscribe();
   }, []);
