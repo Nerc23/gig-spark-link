@@ -1,43 +1,33 @@
 
-import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, Briefcase, MessageSquare, DollarSign, Zap, Star, ArrowRight, Bot, Shield, Clock } from "lucide-react";
+import { Users, Briefcase, MessageSquare, DollarSign, Zap, Star, ArrowRight, Bot, Shield, Clock, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
   const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState<string | null>(localStorage.getItem('freelancerBotUser'));
+  const { user, profile, signOut } = useAuth();
 
-  const handleRoleSelect = (role: 'freelancer' | 'client') => {
-    localStorage.setItem('freelancerBotUser', role);
-    setCurrentUser(role);
+  const handleSignOut = async () => {
+    await signOut();
     toast({
-      title: `Welcome ${role}!`,
-      description: `You're now logged in as a ${role}. Redirecting to your dashboard...`,
-    });
-    
-    setTimeout(() => {
-      if (role === 'freelancer') {
-        navigate('/freelancer-dashboard');
-      } else {
-        navigate('/client-dashboard');
-      }
-    }, 1500);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('freelancerBotUser');
-    setCurrentUser(null);
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out.",
+      title: "Signed out",
+      description: "You have been successfully signed out.",
     });
   };
 
-  if (currentUser) {
+  const handleNavigateToDashboard = () => {
+    if (profile?.user_type === 'freelancer') {
+      navigate('/freelancer-dashboard');
+    } else {
+      navigate('/client-dashboard');
+    }
+  };
+
+  if (user && profile) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <div className="container mx-auto px-4 py-16">
@@ -45,16 +35,16 @@ const Index = () => {
             <div className="flex items-center justify-center mb-6">
               <Bot className="h-12 w-12 text-blue-600 mr-3" />
               <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                FreelanceBot Pro
+                WorkFlow Bot
               </h1>
             </div>
             <p className="text-xl text-gray-600 mb-8">
-              Welcome back, {currentUser}! Ready to get to work?
+              Welcome back, {profile.full_name || profile.email}! Ready to get to work?
             </p>
             
             <div className="space-y-4 max-w-md mx-auto">
               <Button 
-                onClick={() => navigate(currentUser === 'freelancer' ? '/freelancer-dashboard' : '/client-dashboard')}
+                onClick={handleNavigateToDashboard}
                 className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 size="lg"
               >
@@ -62,11 +52,12 @@ const Index = () => {
               </Button>
               
               <Button 
-                onClick={handleLogout}
+                onClick={handleSignOut}
                 variant="outline"
                 className="w-full"
               >
-                Switch Account
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign Out
               </Button>
             </div>
           </div>
@@ -84,7 +75,7 @@ const Index = () => {
             <div className="flex items-center">
               <Bot className="h-8 w-8 text-blue-600 mr-2" />
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                FreelanceBot Pro
+                WorkFlow Bot
               </h1>
             </div>
             <div className="flex items-center space-x-2">
@@ -114,10 +105,7 @@ const Index = () => {
             </p>
             
             <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto mb-12">
-              <Card 
-                className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105 border-2 hover:border-blue-500"
-                onClick={() => handleRoleSelect('freelancer')}
-              >
+              <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 border-2">
                 <CardHeader className="text-center">
                   <Users className="h-12 w-12 text-blue-600 mx-auto mb-3" />
                   <CardTitle className="text-2xl">Join as Freelancer</CardTitle>
@@ -140,16 +128,10 @@ const Index = () => {
                       Integrated communication
                     </li>
                   </ul>
-                  <Button className="w-full mt-4 bg-blue-600 hover:bg-blue-700">
-                    Start Freelancing
-                  </Button>
                 </CardContent>
               </Card>
 
-              <Card 
-                className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105 border-2 hover:border-purple-500"
-                onClick={() => handleRoleSelect('client')}
-              >
+              <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 border-2">
                 <CardHeader className="text-center">
                   <Briefcase className="h-12 w-12 text-purple-600 mx-auto mb-3" />
                   <CardTitle className="text-2xl">Hire as Client</CardTitle>
@@ -172,9 +154,6 @@ const Index = () => {
                       Quality assurance tools
                     </li>
                   </ul>
-                  <Button className="w-full mt-4 bg-purple-600 hover:bg-purple-700">
-                    Start Hiring
-                  </Button>
                 </CardContent>
               </Card>
             </div>
@@ -185,7 +164,7 @@ const Index = () => {
       {/* Features Section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <h3 className="text-3xl font-bold text-center mb-12">Why Choose FreelanceBot Pro?</h3>
+          <h3 className="text-3xl font-bold text-center mb-12">Why Choose WorkFlow Bot?</h3>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -223,7 +202,7 @@ const Index = () => {
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center mb-6">
             <Bot className="h-8 w-8 text-blue-400 mr-2" />
-            <h3 className="text-2xl font-bold">FreelanceBot Pro</h3>
+            <h3 className="text-2xl font-bold">WorkFlow Bot</h3>
           </div>
           <p className="text-gray-400 mb-4">
             Connecting talent with opportunity through intelligent automation
