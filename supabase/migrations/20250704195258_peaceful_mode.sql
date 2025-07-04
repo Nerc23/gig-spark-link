@@ -7,6 +7,7 @@
     - Messaging and notifications system
     - Payment and subscription tracking
     - Analytics and bot interactions
+    - Advertisements
 
   2. Sample Data
     - Demo users (freelancers and clients)
@@ -22,6 +23,7 @@
 */
 
 -- Drop all existing tables and types to start fresh
+-- IMPORTANT: Running this will DELETE ALL DATA in these tables.
 DROP TABLE IF EXISTS public.user_analytics CASCADE;
 DROP TABLE IF EXISTS public.project_applications CASCADE;
 DROP TABLE IF EXISTS public.projects CASCADE;
@@ -45,7 +47,7 @@ DROP TYPE IF EXISTS notification_type CASCADE;
 DROP TYPE IF EXISTS payment_status CASCADE;
 DROP TYPE IF EXISTS application_status CASCADE;
 
--- Create enum types
+-- Create custom enum types
 CREATE TYPE user_type AS ENUM ('freelancer', 'client');
 CREATE TYPE subscription_tier AS ENUM ('free', 'basic', 'pro', 'business', 'enterprise');
 CREATE TYPE project_status AS ENUM ('draft', 'active', 'in_progress', 'completed', 'cancelled');
@@ -53,7 +55,7 @@ CREATE TYPE notification_type AS ENUM ('project_match', 'new_message', 'payment'
 CREATE TYPE payment_status AS ENUM ('pending', 'completed', 'failed', 'refunded');
 CREATE TYPE application_status AS ENUM ('pending', 'accepted', 'rejected');
 
--- Create profiles table (main user information)
+-- Create profiles table (main user information, , includes freelancer and client specific fields)
 CREATE TABLE public.profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     email TEXT NOT NULL,
@@ -96,8 +98,8 @@ CREATE TABLE public.projects (
     budget_max DECIMAL(10,2),
     deadline TIMESTAMPTZ,
     required_skills TEXT[],
-    project_type TEXT,
-    experience_required TEXT,
+    project_type TEXT, -- e.g., 'Web Development', 'Design', 'Content'
+    experience_required TEXT, 
     status project_status NOT NULL DEFAULT 'draft',
     is_featured BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -129,7 +131,7 @@ CREATE TABLE public.messages (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Create notifications table
+-- Notifications table
 CREATE TABLE public.notifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -324,6 +326,8 @@ CREATE INDEX idx_applications_freelancer_id ON public.project_applications(freel
 CREATE INDEX idx_messages_sender_id ON public.messages(sender_id);
 CREATE INDEX idx_messages_recipient_id ON public.messages(recipient_id);
 CREATE INDEX idx_notifications_user_id ON public.notifications(user_id);
+CREATE INDEX idx_user_analytics_user_id ON public.user_analytics(user_id);
+CREATE INDEX idx_bot_interactions_user_id ON public.bot_interactions(user_id);
 
 -- Insert sample data
 
