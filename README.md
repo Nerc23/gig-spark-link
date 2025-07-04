@@ -1,4 +1,4 @@
-# Welcome to your Lovable project
+# Welcome to a vibe code project
 
 ## Project info
 
