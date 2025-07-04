@@ -1,14 +1,12 @@
-
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Create a fallback client if environment variables are missing
+export const supabase = supabaseUrl && supabaseAnonKey 
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null;
 
 // Types for our database
 export interface Profile {
@@ -78,8 +76,13 @@ export interface Application {
   updated_at: string;
 }
 
-// Auth helpers
+// Auth helpers with null checks
 export const signUp = async (email: string, password: string, userData: any) => {
+  if (!supabase) {
+    console.warn('Supabase not configured');
+    return { data: null, error: { message: 'Supabase not configured' } };
+  }
+  
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -91,6 +94,11 @@ export const signUp = async (email: string, password: string, userData: any) => 
 };
 
 export const signIn = async (email: string, password: string) => {
+  if (!supabase) {
+    console.warn('Supabase not configured');
+    return { data: null, error: { message: 'Supabase not configured' } };
+  }
+  
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password
@@ -99,11 +107,21 @@ export const signIn = async (email: string, password: string) => {
 };
 
 export const signOut = async () => {
+  if (!supabase) {
+    console.warn('Supabase not configured');
+    return { error: { message: 'Supabase not configured' } };
+  }
+  
   const { error } = await supabase.auth.signOut();
   return { error };
 };
 
 export const getCurrentUser = async () => {
+  if (!supabase) {
+    console.warn('Supabase not configured');
+    return { user: null, error: { message: 'Supabase not configured' } };
+  }
+  
   const { data: { user }, error } = await supabase.auth.getUser();
   return { user, error };
 };
