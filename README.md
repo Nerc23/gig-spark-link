@@ -24,6 +24,14 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+**Pitch Deck Link:**
+- https://spark-pitch-genesis-deck.lovable.app/
+
+**Video demo Link:**
+Created using Pictory.AI
+https://video.pictory.ai/1751639142714/20250704144403468qFgu3EGRoRAXwJu
+
+
 --------------------------------------------------------------------------------------------------------------------------------
 Deployed using Netlify:
 https://workflow-bot-8f15c4.netlify.app/
