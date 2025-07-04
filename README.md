@@ -24,6 +24,16 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## AI tools used:
+- Lovable with Supabase
+- Pictory
+- Gemini
+------------------------------------------------------------------------------
+*Note: 
+ - Created a separate sql database named 'supabase'. Couldn't get lovable to generate signin and sign up successfully for users. 
+ - Generated new database using Gemini, and to check for the errors in Supabase
+ 
+----------------------------------------------------------------------------
 **Pitch Deck Link:**
 - https://spark-pitch-genesis-deck.lovable.app/
 
