@@ -1,25 +1,18 @@
 /*
   # Complete Database Schema for WorkFlow Bot
 
-  1. Database Structure
-    - User profiles with freelancer/client types
-    - Projects with applications and milestones
-    - Messaging and notifications system
-    - Payment and subscription tracking
-    - Analytics and bot interactions
-    - Advertisements
+  This script sets up the entire database structure, including:
+  - User profiles with freelancer/client types (merged into a single profiles table)
+  - Projects with applications and milestones
+  - Messaging and notifications system
+  - Payment and subscription tracking
+  - Analytics and bot interactions
+  - Advertisements
 
-  2. Sample Data
-    - Demo users (freelancers and clients)
-    - Sample projects across different categories
-    - Applications and project interactions
-    - Payment history and subscription data
-    - Analytics and engagement metrics
-
-  3. Security
-    - Row Level Security (RLS) enabled
-    - Proper access policies for all tables
-    - User-specific data protection
+  It also includes:
+  - Sample Data for demonstration
+  - Row Level Security (RLS) policies for secure access
+  - Functions and triggers for automatic timestamp updates and new user handling
 */
 
 -- Drop all existing tables and types to start fresh
@@ -47,7 +40,7 @@ DROP TYPE IF EXISTS notification_type CASCADE;
 DROP TYPE IF EXISTS payment_status CASCADE;
 DROP TYPE IF EXISTS application_status CASCADE;
 
--- Create custom enum types
+-- Create custom types
 CREATE TYPE user_type AS ENUM ('freelancer', 'client');
 CREATE TYPE subscription_tier AS ENUM ('free', 'basic', 'pro', 'business', 'enterprise');
 CREATE TYPE project_status AS ENUM ('draft', 'active', 'in_progress', 'completed', 'cancelled');
@@ -55,7 +48,7 @@ CREATE TYPE notification_type AS ENUM ('project_match', 'new_message', 'payment'
 CREATE TYPE payment_status AS ENUM ('pending', 'completed', 'failed', 'refunded');
 CREATE TYPE application_status AS ENUM ('pending', 'accepted', 'rejected');
 
--- Create profiles table (main user information, , includes freelancer and client specific fields)
+-- Profiles table (main user information, includes freelancer and client specific fields)
 CREATE TABLE public.profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     email TEXT NOT NULL,
@@ -66,29 +59,29 @@ CREATE TABLE public.profiles (
     location TEXT,
     website TEXT,
     phone TEXT,
-    
+
     -- Freelancer specific fields
     hourly_rate DECIMAL(10,2),
     skills TEXT[],
     experience_level TEXT,
     availability_status TEXT DEFAULT 'available',
     portfolio_url TEXT,
-    
+
     -- Client specific fields
     company_name TEXT,
     company_size TEXT,
     industry TEXT,
-    
+
     -- Subscription fields
     subscription_tier subscription_tier NOT NULL DEFAULT 'free',
     subscription_expires_at TIMESTAMPTZ,
-    
+
     -- Timestamps
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Create projects table
+-- Projects table
 CREATE TABLE public.projects (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     client_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -99,14 +92,14 @@ CREATE TABLE public.projects (
     deadline TIMESTAMPTZ,
     required_skills TEXT[],
     project_type TEXT, -- e.g., 'Web Development', 'Design', 'Content'
-    experience_required TEXT, 
+    experience_required TEXT, -- e.g., 'beginner', 'intermediate', 'expert'
     status project_status NOT NULL DEFAULT 'draft',
     is_featured BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Create project applications table
+-- Project applications table
 CREATE TABLE public.project_applications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     project_id UUID NOT NULL REFERENCES public.projects(id) ON DELETE CASCADE,
@@ -117,15 +110,15 @@ CREATE TABLE public.project_applications (
     status application_status NOT NULL DEFAULT 'pending',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE(project_id, freelancer_id)
+    UNIQUE(project_id, freelancer_id) -- Ensures a freelancer can only apply once per project
 );
 
--- Create messages table
+-- Messages table
 CREATE TABLE public.messages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     sender_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     recipient_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    project_id UUID REFERENCES public.projects(id) ON DELETE CASCADE,
+    project_id UUID REFERENCES public.projects(id) ON DELETE CASCADE, -- Optional: message can be project-related or general
     content TEXT NOT NULL,
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -138,37 +131,37 @@ CREATE TABLE public.notifications (
     title TEXT NOT NULL,
     message TEXT NOT NULL,
     type notification_type NOT NULL,
-    related_id UUID,
+    related_id UUID, -- Can link to project_id, application_id, etc.
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Create payments table
+-- Payments table (unified for project payments and subscriptions)
 CREATE TABLE public.payments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    project_id UUID REFERENCES public.projects(id) ON DELETE SET NULL,
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE, -- The user making/receiving the payment
+    project_id UUID REFERENCES public.projects(id) ON DELETE SET NULL, -- Null for subscription payments
     amount DECIMAL(10,2) NOT NULL,
     currency TEXT DEFAULT 'USD',
     status payment_status NOT NULL DEFAULT 'pending',
-    payment_method TEXT,
-    stripe_payment_intent_id TEXT,
-    subscription_tier subscription_tier,
-    billing_period TEXT,
+    payment_method TEXT, -- e.g., 'stripe', 'paypal'
+    stripe_payment_intent_id TEXT, -- For Stripe integration
+    subscription_tier subscription_tier, -- Null for project payments
+    billing_period TEXT, -- e.g., 'monthly', 'annually' for subscriptions
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Create user analytics table
+-- User analytics table
 CREATE TABLE public.user_analytics (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    metric_name TEXT NOT NULL,
+    metric_name TEXT NOT NULL, -- e.g., 'profile_views', 'project_applications', 'messages_sent'
     metric_value INTEGER NOT NULL,
     date DATE DEFAULT CURRENT_DATE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Create bot interactions table
+-- Bot interactions table
 CREATE TABLE public.bot_interactions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -178,25 +171,26 @@ CREATE TABLE public.bot_interactions (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Create advertisements table
+-- Advertisements table
 CREATE TABLE public.advertisements (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
     description TEXT NOT NULL,
     image_url TEXT,
     target_url TEXT NOT NULL,
-    target_user_type user_type,
-    target_skills TEXT[],
+    target_user_type user_type, -- Target 'freelancer' or 'client'
+    target_skills TEXT[], -- Target specific skills for freelancers
     is_active BOOLEAN DEFAULT TRUE,
     impressions INTEGER DEFAULT 0,
     clicks INTEGER DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+
 -- Create function to handle new user registration
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER
-SECURITY DEFINER
+SECURITY DEFINER -- IMPORTANT: This allows the function to bypass RLS policies for its execution
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -207,18 +201,20 @@ BEGIN
         user_type
     ) VALUES (
         NEW.id,
-        NEW.email,
+        NEW.email, -- Ensure email is always taken from NEW.email
         COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', 'New User'),
-        CASE 
+        -- Safely cast user_type, defaulting to 'freelancer' if not 'client' or null
+        CASE
             WHEN NEW.raw_user_meta_data->>'user_type' = 'client' THEN 'client'::user_type
             ELSE 'freelancer'::user_type
         END
     );
     RETURN NEW;
 EXCEPTION
-    WHEN others THEN
+    -- Catch any exception during profile creation and log it, but still allow user creation in auth.users
+    WHEN OTHERS THEN
         RAISE WARNING 'Failed to create profile for user %: %', NEW.id, SQLERRM;
-        RETURN NEW;
+        RETURN NEW; -- Still return NEW to allow the auth.users insert to complete
 END;
 $$;
 
@@ -303,6 +299,7 @@ CREATE POLICY "Users can view own payments" ON public.payments FOR SELECT USING 
 
 -- RLS Policies for user analytics table
 CREATE POLICY "Users can view own analytics" ON public.user_analytics FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own analytics" ON public.user_analytics FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- RLS Policies for bot interactions table
 CREATE POLICY "Users can create bot interactions" ON public.bot_interactions FOR INSERT WITH CHECK (auth.uid() = user_id);
@@ -430,6 +427,7 @@ INSERT INTO public.advertisements (title, description, image_url, target_url, ta
 ('Freelancer Success Toolkit', 'Download our free guide with templates, pricing strategies, and client communication tips.', 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400', 'https://toolkit.example.com', 'freelancer', null, 9876, 145);
 
 -- Update subscription expiration dates for paid users
-UPDATE public.profiles 
+UPDATE public.profiles
 SET subscription_expires_at = NOW() + INTERVAL '1 month'
 WHERE subscription_tier IN ('basic', 'pro', 'enterprise');
+
