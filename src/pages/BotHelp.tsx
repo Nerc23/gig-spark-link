@@ -118,7 +118,7 @@ const BotHelp = () => {
       questions: [
         {
           q: 'What payment methods do you accept?',
-          q: 'We accept all major credit cards, PayPal, bank transfers, and cryptocurrency. Payments are processed securely through our encrypted platform.'
+          a: 'We accept all major credit cards, PayPal, bank transfers, and cryptocurrency. Payments are processed securely through our encrypted platform.'
         },
         {
           q: 'When do I get paid as a freelancer?',
