@@ -28,27 +28,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshProfile = async () => {
     if (user) {
-      const { data } = await getProfile(user.id);
-      setProfile(data);
+      console.log('Refreshing profile for user:', user.id);
+      const { data, error } = await getProfile(user.id);
+      if (error) {
+        console.error('Error refreshing profile:', error);
+      } else {
+        console.log('Profile refreshed:', data);
+        setProfile(data);
+      }
     }
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setProfile(null);
+    try {
+      console.log('Signing out user...');
+      await supabase.auth.signOut();
+      setUser(null);
+      setProfile(null);
+      console.log('User signed out successfully');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   useEffect(() => {
+    console.log('Setting up auth state listener...');
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
+        
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          const { data } = await getProfile(session.user.id);
-          setProfile(data);
+          console.log('User logged in, fetching profile...');
+          const { data, error } = await getProfile(session.user.id);
+          if (error) {
+            console.error('Error fetching profile:', error);
+            setProfile(null);
+          } else {
+            console.log('Profile fetched:', data);
+            setProfile(data);
+          }
         } else {
+          console.log('No user session, clearing profile');
           setProfile(null);
         }
         
@@ -58,20 +82,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Get initial session
     const getInitialSession = async () => {
-      const { user: currentUser } = await getCurrentUser();
-      setUser(currentUser);
-      
-      if (currentUser) {
-        const { data } = await getProfile(currentUser.id);
-        setProfile(data);
+      try {
+        console.log('Getting initial session...');
+        const { user: currentUser, error } = await getCurrentUser();
+        
+        if (error) {
+          console.error('Error getting initial user:', error);
+          setLoading(false);
+          return;
+        }
+
+        console.log('Initial user:', currentUser?.id);
+        setUser(currentUser);
+        
+        if (currentUser) {
+          const { data, error: profileError } = await getProfile(currentUser.id);
+          if (profileError) {
+            console.error('Error fetching initial profile:', profileError);
+          } else {
+            console.log('Initial profile:', data);
+            setProfile(data);
+          }
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Error in getInitialSession:', error);
+        setLoading(false);
       }
-      
-      setLoading(false);
     };
 
     getInitialSession();
 
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log('Cleaning up auth subscription');
+      subscription.unsubscribe();
+    };
   }, []);
 
   const value = {

@@ -36,23 +36,57 @@ const Auth = () => {
       return;
     }
 
-    setLoading(true);
-    
-    const { data, error } = await signUp(signUpData.email, signUpData.password, {
-      full_name: signUpData.fullName,
-      user_type: signUpData.userType
-    });
-
-    if (error) {
+    if (signUpData.password.length < 6) {
       toast({
-        title: "Sign up failed",
-        description: error.message,
+        title: "Error",
+        description: "Password must be at least 6 characters long",
         variant: "destructive"
       });
-    } else {
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      console.log('Starting sign up process...', {
+        email: signUpData.email,
+        userType: signUpData.userType,
+        fullName: signUpData.fullName
+      });
+
+      const { data, error } = await signUp(signUpData.email, signUpData.password, {
+        full_name: signUpData.fullName,
+        user_type: signUpData.userType
+      });
+
+      if (error) {
+        console.error('Sign up error:', error);
+        toast({
+          title: "Sign up failed",
+          description: error.message || "An error occurred during sign up",
+          variant: "destructive"
+        });
+      } else {
+        console.log('Sign up successful:', data);
+        toast({
+          title: "Success!",
+          description: "Please check your email to verify your account.",
+        });
+        // Reset form
+        setSignUpData({
+          email: '',
+          password: '',
+          confirmPassword: '',
+          fullName: '',
+          userType: 'freelancer'
+        });
+      }
+    } catch (err) {
+      console.error('Unexpected error during sign up:', err);
       toast({
-        title: "Success!",
-        description: "Please check your email to verify your account.",
+        title: "Sign up failed",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive"
       });
     }
     
@@ -63,18 +97,36 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
     
-    const { data, error } = await signIn(signInData.email, signInData.password);
+    try {
+      console.log('Starting sign in process...', { email: signInData.email });
 
-    if (error) {
+      const { data, error } = await signIn(signInData.email, signInData.password);
+
+      if (error) {
+        console.error('Sign in error:', error);
+        toast({
+          title: "Sign in failed",
+          description: error.message || "Invalid email or password",
+          variant: "destructive"
+        });
+      } else {
+        console.log('Sign in successful:', data);
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully signed in.",
+        });
+        // Reset form
+        setSignInData({
+          email: '',
+          password: ''
+        });
+      }
+    } catch (err) {
+      console.error('Unexpected error during sign in:', err);
       toast({
         title: "Sign in failed",
-        description: error.message,
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive"
-      });
-    } else {
-      toast({
-        title: "Welcome back!",
-        description: "You have successfully signed in.",
       });
     }
     
@@ -183,10 +235,11 @@ const Auth = () => {
                   <Input
                     id="signup-password"
                     type="password"
-                    placeholder="Create a password"
+                    placeholder="Create a password (min 6 characters)"
                     value={signUpData.password}
                     onChange={(e) => setSignUpData(prev => ({ ...prev, password: e.target.value }))}
                     required
+                    minLength={6}
                   />
                 </div>
                 <div className="space-y-2">
@@ -198,6 +251,7 @@ const Auth = () => {
                     value={signUpData.confirmPassword}
                     onChange={(e) => setSignUpData(prev => ({ ...prev, confirmPassword: e.target.value }))}
                     required
+                    minLength={6}
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>

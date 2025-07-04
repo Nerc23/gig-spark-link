@@ -69,205 +69,319 @@ export interface Application {
   updated_at: string;
 }
 
-// Auth helpers
+// Auth helpers with proper error handling and logging
 export const signUp = async (email: string, password: string, userData: any) => {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: userData,
-      emailRedirectTo: `${window.location.origin}/`
-    }
-  });
-  return { data, error };
+  try {
+    console.log('Supabase signUp called with:', { email, userData });
+    
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: userData,
+        emailRedirectTo: `${window.location.origin}/`
+      }
+    });
+
+    console.log('Supabase signUp response:', { data, error });
+    return { data, error };
+  } catch (err) {
+    console.error('Unexpected error in signUp:', err);
+    return { data: null, error: { message: 'An unexpected error occurred during sign up' } };
+  }
 };
 
 export const signIn = async (email: string, password: string) => {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password
-  });
-  return { data, error };
+  try {
+    console.log('Supabase signIn called with:', { email });
+    
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    console.log('Supabase signIn response:', { data, error });
+    return { data, error };
+  } catch (err) {
+    console.error('Unexpected error in signIn:', err);
+    return { data: null, error: { message: 'An unexpected error occurred during sign in' } };
+  }
 };
 
 export const signOut = async () => {
-  const { error } = await supabase.auth.signOut();
-  return { error };
+  try {
+    const { error } = await supabase.auth.signOut();
+    return { error };
+  } catch (err) {
+    console.error('Unexpected error in signOut:', err);
+    return { error: { message: 'An unexpected error occurred during sign out' } };
+  }
 };
 
 export const getCurrentUser = async () => {
-  const { data: { user }, error } = await supabase.auth.getUser();
-  return { user, error };
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    console.log('getCurrentUser result:', { user, error });
+    return { user, error };
+  } catch (err) {
+    console.error('Unexpected error in getCurrentUser:', err);
+    return { user: null, error: { message: 'An unexpected error occurred getting current user' } };
+  }
 };
 
 // Profile CRUD operations
 export const getProfile = async (userId: string) => {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .single();
-  return { data, error };
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    return { data, error };
+  } catch (err) {
+    console.error('Error getting profile:', err);
+    return { data: null, error: { message: 'Error fetching profile' } };
+  }
 };
 
 export const updateProfile = async (userId: string, updates: Partial<Profile>) => {
-  const { data, error } = await supabase
-    .from('profiles')
-    .update(updates)
-    .eq('id', userId)
-    .select()
-    .single();
-  return { data, error };
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', userId)
+      .select()
+      .single();
+    return { data, error };
+  } catch (err) {
+    console.error('Error updating profile:', err);
+    return { data: null, error: { message: 'Error updating profile' } };
+  }
 };
 
 export const deleteProfile = async (userId: string) => {
-  const { data, error } = await supabase
-    .from('profiles')
-    .delete()
-    .eq('id', userId);
-  return { data, error };
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', userId);
+    return { data, error };
+  } catch (err) {
+    console.error('Error deleting profile:', err);
+    return { data: null, error: { message: 'Error deleting profile' } };
+  }
 };
 
 // Freelancer Profile CRUD operations
 export const getFreelancerProfile = async (userId: string) => {
-  const { data, error } = await supabase
-    .from('freelancer_profiles')
-    .select('*')
-    .eq('id', userId)
-    .single();
-  return { data, error };
+  try {
+    const { data, error } = await supabase
+      .from('freelancer_profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    return { data, error };
+  } catch (err) {
+    console.error('Error getting freelancer profile:', err);
+    return { data: null, error: { message: 'Error fetching freelancer profile' } };
+  }
 };
 
 export const updateFreelancerProfile = async (userId: string, updates: Partial<FreelancerProfile>) => {
-  const { data, error } = await supabase
-    .from('freelancer_profiles')
-    .update(updates)
-    .eq('id', userId)
-    .select()
-    .single();
-  return { data, error };
+  try {
+    const { data, error } = await supabase
+      .from('freelancer_profiles')
+      .update(updates)
+      .eq('id', userId)
+      .select()
+      .single();
+    return { data, error };
+  } catch (err) {
+    console.error('Error updating freelancer profile:', err);
+    return { data: null, error: { message: 'Error updating freelancer profile' } };
+  }
 };
 
 // Client Profile CRUD operations
 export const getClientProfile = async (userId: string) => {
-  const { data, error } = await supabase
-    .from('client_profiles')
-    .select('*')
-    .eq('id', userId)
-    .single();
-  return { data, error };
+  try {
+    const { data, error } = await supabase
+      .from('client_profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    return { data, error };
+  } catch (err) {
+    console.error('Error getting client profile:', err);
+    return { data: null, error: { message: 'Error fetching client profile' } };
+  }
 };
 
 export const updateClientProfile = async (userId: string, updates: Partial<ClientProfile>) => {
-  const { data, error } = await supabase
-    .from('client_profiles')
-    .update(updates)
-    .eq('id', userId)
-    .select()
-    .single();
-  return { data, error };
+  try {
+    const { data, error } = await supabase
+      .from('client_profiles')
+      .update(updates)
+      .eq('id', userId)
+      .select()
+      .single();
+    return { data, error };
+  } catch (err) {
+    console.error('Error updating client profile:', err);
+    return { data: null, error: { message: 'Error updating client profile' } };
+  }
 };
 
 // Project CRUD operations
 export const createProject = async (project: Omit<Project, 'id' | 'created_at' | 'updated_at'>) => {
-  const { data, error } = await supabase
-    .from('projects')
-    .insert([project])
-    .select()
-    .single();
-  return { data, error };
+  try {
+    const { data, error } = await supabase
+      .from('projects')
+      .insert([project])
+      .select()
+      .single();
+    return { data, error };
+  } catch (err) {
+    console.error('Error creating project:', err);
+    return { data: null, error: { message: 'Error creating project' } };
+  }
 };
 
 export const getProjects = async (filters?: any) => {
-  let query = supabase.from('projects').select('*');
-  
-  if (filters?.status) {
-    query = query.eq('status', filters.status);
+  try {
+    let query = supabase.from('projects').select('*');
+    
+    if (filters?.status) {
+      query = query.eq('status', filters.status);
+    }
+    if (filters?.client_id) {
+      query = query.eq('client_id', filters.client_id);
+    }
+    
+    const { data, error } = await query.order('created_at', { ascending: false });
+    return { data, error };
+  } catch (err) {
+    console.error('Error getting projects:', err);
+    return { data: null, error: { message: 'Error fetching projects' } };
   }
-  if (filters?.client_id) {
-    query = query.eq('client_id', filters.client_id);
-  }
-  
-  const { data, error } = await query.order('created_at', { ascending: false });
-  return { data, error };
 };
 
 export const getProject = async (projectId: string) => {
-  const { data, error } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('id', projectId)
-    .single();
-  return { data, error };
+  try {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', projectId)
+      .single();
+    return { data, error };
+  } catch (err) {
+    console.error('Error getting project:', err);
+    return { data: null, error: { message: 'Error fetching project' } };
+  }
 };
 
 export const updateProject = async (projectId: string, updates: Partial<Project>) => {
-  const { data, error } = await supabase
-    .from('projects')
-    .update(updates)
-    .eq('id', projectId)
-    .select()
-    .single();
-  return { data, error };
+  try {
+    const { data, error } = await supabase
+      .from('projects')
+      .update(updates)
+      .eq('id', projectId)
+      .select()
+      .single();
+    return { data, error };
+  } catch (err) {
+    console.error('Error updating project:', err);
+    return { data: null, error: { message: 'Error updating project' } };
+  }
 };
 
 export const deleteProject = async (projectId: string) => {
-  const { data, error } = await supabase
-    .from('projects')
-    .delete()
-    .eq('id', projectId);
-  return { data, error };
+  try {
+    const { data, error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', projectId);
+    return { data, error };
+  } catch (err) {
+    console.error('Error deleting project:', err);
+    return { data: null, error: { message: 'Error deleting project' } };
+  }
 };
 
 // Application CRUD operations
 export const createApplication = async (application: Omit<Application, 'id' | 'created_at' | 'updated_at'>) => {
-  const { data, error } = await supabase
-    .from('applications')
-    .insert([application])
-    .select()
-    .single();
-  return { data, error };
+  try {
+    const { data, error } = await supabase
+      .from('applications')
+      .insert([application])
+      .select()
+      .single();
+    return { data, error };
+  } catch (err) {
+    console.error('Error creating application:', err);
+    return { data: null, error: { message: 'Error creating application' } };
+  }
 };
 
 export const getApplications = async (filters?: any) => {
-  let query = supabase.from('applications').select('*');
-  
-  if (filters?.project_id) {
-    query = query.eq('project_id', filters.project_id);
+  try {
+    let query = supabase.from('applications').select('*');
+    
+    if (filters?.project_id) {
+      query = query.eq('project_id', filters.project_id);
+    }
+    if (filters?.freelancer_id) {
+      query = query.eq('freelancer_id', filters.freelancer_id);
+    }
+    
+    const { data, error } = await query.order('created_at', { ascending: false });
+    return { data, error };
+  } catch (err) {
+    console.error('Error getting applications:', err);
+    return { data: null, error: { message: 'Error fetching applications' } };
   }
-  if (filters?.freelancer_id) {
-    query = query.eq('freelancer_id', filters.freelancer_id);
-  }
-  
-  const { data, error } = await query.order('created_at', { ascending: false });
-  return { data, error };
 };
 
 export const getApplication = async (applicationId: string) => {
-  const { data, error } = await supabase
-    .from('applications')
-    .select('*')
-    .eq('id', applicationId)
-    .single();
-  return { data, error };
+  try {
+    const { data, error } = await supabase
+      .from('applications')
+      .select('*')
+      .eq('id', applicationId)
+      .single();
+    return { data, error };
+  } catch (err) {
+    console.error('Error getting application:', err);
+    return { data: null, error: { message: 'Error fetching application' } };
+  }
 };
 
 export const updateApplication = async (applicationId: string, updates: Partial<Application>) => {
-  const { data, error } = await supabase
-    .from('applications')
-    .update(updates)
-    .eq('id', applicationId)
-    .select()
-    .single();
-  return { data, error };
+  try {
+    const { data, error } = await supabase
+      .from('applications')
+      .update(updates)
+      .eq('id', applicationId)
+      .select()
+      .single();
+    return { data, error };
+  } catch (err) {
+    console.error('Error updating application:', err);
+    return { data: null, error: { message: 'Error updating application' } };
+  }
 };
 
 export const deleteApplication = async (applicationId: string) => {
-  const { data, error } = await supabase
-    .from('applications')
-    .delete()
-    .eq('id', applicationId);
-  return { data, error };
+  try {
+    const { data, error } = await supabase
+      .from('applications')
+      .delete()
+      .eq('id', applicationId);
+    return { data, error };
+  } catch (err) {
+    console.error('Error deleting application:', err);
+    return { data: null, error: { message: 'Error deleting application' } };
+  }
 };
 
 // Export the supabase client for direct use
