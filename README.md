@@ -28,8 +28,8 @@ This project is built with:
 - https://spark-pitch-genesis-deck.lovable.app/
 
 **Video demo Link:**
-Created using Pictory.AI
-https://video.pictory.ai/1751639142714/20250704144403468qFgu3EGRoRAXwJu
+
+- https://video.pictory.ai/1751639142714/20250704144403468qFgu3EGRoRAXwJu
 
 
 --------------------------------------------------------------------------------------------------------------------------------
