@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 // Types for our database
@@ -84,10 +83,20 @@ export const signUp = async (email: string, password: string, userData: any) => 
     });
 
     console.log('Supabase signUp response:', { data, error });
-    return { data, error };
+    
+    if (error) {
+      console.error('SignUp error details:', error);
+      // Handle specific error cases
+      if (error.message.includes('User already registered')) {
+        return { data: null, error: { message: 'An account with this email already exists. Please sign in instead.' } };
+      }
+      return { data, error };
+    }
+    
+    return { data, error: null };
   } catch (err) {
     console.error('Unexpected error in signUp:', err);
-    return { data: null, error: { message: 'An unexpected error occurred during sign up' } };
+    return { data: null, error: { message: 'An unexpected error occurred during sign up. Please try again.' } };
   }
 };
 
@@ -101,10 +110,20 @@ export const signIn = async (email: string, password: string) => {
     });
 
     console.log('Supabase signIn response:', { data, error });
-    return { data, error };
+    
+    if (error) {
+      console.error('SignIn error details:', error);
+      // Handle specific error cases
+      if (error.message.includes('Invalid login credentials')) {
+        return { data: null, error: { message: 'Invalid email or password. Please check your credentials and try again.' } };
+      }
+      return { data, error };
+    }
+    
+    return { data, error: null };
   } catch (err) {
     console.error('Unexpected error in signIn:', err);
-    return { data: null, error: { message: 'An unexpected error occurred during sign in' } };
+    return { data: null, error: { message: 'An unexpected error occurred during sign in. Please try again.' } };
   }
 };
 

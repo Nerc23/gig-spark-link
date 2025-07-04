@@ -63,14 +63,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (session?.user) {
           console.log('User logged in, fetching profile...');
-          const { data, error } = await getProfile(session.user.id);
-          if (error) {
-            console.error('Error fetching profile:', error);
-            setProfile(null);
-          } else {
-            console.log('Profile fetched:', data);
-            setProfile(data);
-          }
+          // Use setTimeout to avoid potential deadlock
+          setTimeout(async () => {
+            const { data, error } = await getProfile(session.user.id);
+            if (error) {
+              console.error('Error fetching profile:', error);
+              setProfile(null);
+            } else {
+              console.log('Profile fetched:', data);
+              setProfile(data);
+            }
+          }, 0);
         } else {
           console.log('No user session, clearing profile');
           setProfile(null);
@@ -84,19 +87,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const getInitialSession = async () => {
       try {
         console.log('Getting initial session...');
-        const { user: currentUser, error } = await getCurrentUser();
+        const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('Error getting initial user:', error);
+          console.error('Error getting initial session:', error);
           setLoading(false);
           return;
         }
 
-        console.log('Initial user:', currentUser?.id);
-        setUser(currentUser);
+        console.log('Initial session:', session?.user?.id);
+        setUser(session?.user ?? null);
         
-        if (currentUser) {
-          const { data, error: profileError } = await getProfile(currentUser.id);
+        if (session?.user) {
+          const { data, error: profileError } = await getProfile(session.user.id);
           if (profileError) {
             console.error('Error fetching initial profile:', profileError);
           } else {

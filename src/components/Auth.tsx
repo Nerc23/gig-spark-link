@@ -45,6 +45,15 @@ const Auth = () => {
       return;
     }
 
+    if (!signUpData.fullName.trim()) {
+      toast({
+        title: "Error",
+        description: "Full name is required",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
     
     try {
@@ -70,7 +79,7 @@ const Auth = () => {
         console.log('Sign up successful:', data);
         toast({
           title: "Success!",
-          description: "Please check your email to verify your account.",
+          description: "Account created successfully. Please check your email to verify your account.",
         });
         // Reset form
         setSignUpData({
@@ -95,6 +104,16 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!signInData.email.trim() || !signInData.password.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter both email and password",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
     
     try {
@@ -165,6 +184,7 @@ const Auth = () => {
                     value={signInData.email}
                     onChange={(e) => setSignInData(prev => ({ ...prev, email: e.target.value }))}
                     required
+                    disabled={loading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -176,6 +196,7 @@ const Auth = () => {
                     value={signInData.password}
                     onChange={(e) => setSignInData(prev => ({ ...prev, password: e.target.value }))}
                     required
+                    disabled={loading}
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
@@ -195,6 +216,7 @@ const Auth = () => {
                     value={signUpData.fullName}
                     onChange={(e) => setSignUpData(prev => ({ ...prev, fullName: e.target.value }))}
                     required
+                    disabled={loading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -206,11 +228,16 @@ const Auth = () => {
                     value={signUpData.email}
                     onChange={(e) => setSignUpData(prev => ({ ...prev, email: e.target.value }))}
                     required
+                    disabled={loading}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="usertype">I am a...</Label>
-                  <Select value={signUpData.userType} onValueChange={(value: 'freelancer' | 'client') => setSignUpData(prev => ({ ...prev, userType: value }))}>
+                  <Select 
+                    value={signUpData.userType} 
+                    onValueChange={(value: 'freelancer' | 'client') => setSignUpData(prev => ({ ...prev, userType: value }))}
+                    disabled={loading}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -240,6 +267,7 @@ const Auth = () => {
                     onChange={(e) => setSignUpData(prev => ({ ...prev, password: e.target.value }))}
                     required
                     minLength={6}
+                    disabled={loading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -252,6 +280,7 @@ const Auth = () => {
                     onChange={(e) => setSignUpData(prev => ({ ...prev, confirmPassword: e.target.value }))}
                     required
                     minLength={6}
+                    disabled={loading}
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
