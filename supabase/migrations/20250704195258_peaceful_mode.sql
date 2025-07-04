@@ -15,8 +15,8 @@
   - Functions and triggers for automatic timestamp updates and new user handling
 */
 
--- Drop all existing tables and types to start fresh
--- IMPORTANT: Running this will DELETE ALL DATA in these tables.
+-- IMPORTANT: Ensure these commands are run first to clear existing definitions
+-- This will DELETE ALL DATA in these tables.
 DROP TABLE IF EXISTS public.user_analytics CASCADE;
 DROP TABLE IF EXISTS public.project_applications CASCADE;
 DROP TABLE IF EXISTS public.projects CASCADE;
@@ -39,6 +39,20 @@ DROP TYPE IF EXISTS project_status CASCADE;
 DROP TYPE IF EXISTS notification_type CASCADE;
 DROP TYPE IF EXISTS payment_status CASCADE;
 DROP TYPE IF EXISTS application_status CASCADE;
+
+-- Drop existing indexes to prevent "relation already exists" errors
+DROP INDEX IF EXISTS idx_profiles_user_type;
+DROP INDEX IF EXISTS idx_profiles_email;
+DROP INDEX IF EXISTS idx_projects_client_id;
+DROP INDEX IF EXISTS idx_projects_status;
+DROP INDEX IF EXISTS idx_applications_project_id;
+DROP INDEX IF EXISTS idx_applications_freelancer_id;
+DROP INDEX IF EXISTS idx_messages_sender_id;
+DROP INDEX IF EXISTS idx_messages_recipient_id;
+DROP INDEX IF EXISTS idx_notifications_user_id;
+DROP INDEX IF EXISTS idx_user_analytics_user_id;
+DROP INDEX IF EXISTS idx_bot_interactions_user_id;
+
 
 -- Create custom types
 CREATE TYPE user_type AS ENUM ('freelancer', 'client');
@@ -430,4 +444,3 @@ INSERT INTO public.advertisements (title, description, image_url, target_url, ta
 UPDATE public.profiles
 SET subscription_expires_at = NOW() + INTERVAL '1 month'
 WHERE subscription_tier IN ('basic', 'pro', 'enterprise');
-
